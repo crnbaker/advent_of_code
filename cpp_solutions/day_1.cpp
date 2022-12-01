@@ -14,8 +14,6 @@ std::vector<int> CalorieCounter::getCaloriesPerElf()
     while (std::getline(file, line))
     {
 		if (isdigit(line[0])) {
-			line.erase(line.length() - 1);
-			// std::cout << line;
 			temp_total += stoi(line);
 		} else {
 			caloriesPerElf.push_back(temp_total);
@@ -25,15 +23,15 @@ std::vector<int> CalorieCounter::getCaloriesPerElf()
 	return caloriesPerElf;
 };
 
+int CalorieCounter::calcCaloriesInTopElf()
+{
+	return *std::max_element(caloriesPerElf.begin(), caloriesPerElf.end());
+}
+
 
 int main()
 {
 	CalorieCounter counter;
-	std::vector<int> values = counter.getCaloriesPerElf();
-	std::cout << "Counting calories...." << std::endl;
-	for (int value : values)
-	{
-		std::cout << value << std::endl;
-	}
-	std::cout << "... Finished!.";
+	int max_cals = counter.calcCaloriesInTopElf();
+	std::cout << "Greediest elf has " << max_cals << " calories" << std::endl;
 };
