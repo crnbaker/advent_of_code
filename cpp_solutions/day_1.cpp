@@ -28,10 +28,18 @@ int CalorieCounter::calcCaloriesInTopElf()
 	return *std::max_element(caloriesPerElf.begin(), caloriesPerElf.end());
 }
 
+int CalorieCounter::calcCaloriesInTopThreeElves()
+{
+	std::sort(caloriesPerElf.begin(), caloriesPerElf.end());
+	int numElves = caloriesPerElf.size();
+	return caloriesPerElf[numElves - 3] + caloriesPerElf[numElves - 2] + caloriesPerElf[numElves - 1];
+}
 
 int main()
 {
 	CalorieCounter counter;
-	int max_cals = counter.calcCaloriesInTopElf();
-	std::cout << "Greediest elf has " << max_cals << " calories" << std::endl;
+	int maxCals = counter.calcCaloriesInTopElf();
+	std::cout << "Greediest elf has " << maxCals << " calories" << std::endl;
+	int calsInTopThree = counter.calcCaloriesInTopThreeElves();
+	std::cout << "Top 3 elves have " << calsInTopThree << " calories" << std::endl;
 };
