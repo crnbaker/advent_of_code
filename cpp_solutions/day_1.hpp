@@ -11,5 +11,4 @@ public:
 private:
 	std::vector<int> getCaloriesPerElf();
 	std::vector<int> caloriesPerElf = getCaloriesPerElf();
-
 };
