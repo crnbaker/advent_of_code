@@ -2,7 +2,7 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import Enum
-from typing import List, Tuple
+from typing import Dict, List, Tuple
 
 
 class Tool(Enum):
@@ -64,8 +64,18 @@ class Game(ABC):
     def __init__(self) -> None:
         self.rounds = self._load_rounds()
 
-    @abstractmethod
     def _load_rounds(self) -> List[Round]:
+        rounds = []
+        with open('../inputs/day_2.txt', 'r') as f:
+            for line in f.readlines():
+                if line != '\n':
+                    coded_round = (line.split()[0], line.split()[1])
+                    rounds.append(self._decode_round(coded_round))
+        return rounds
+
+    @staticmethod
+    @abstractmethod
+    def _decode_round(coded_round: Tuple[str, str]) -> Round:
         raise NotImplementedError()
 
     def play(self) -> int:
@@ -76,36 +86,24 @@ class Game(ABC):
 
 
 class Part1Game(Game):
-    def _load_rounds(self) -> List[Round]:
-        strategy = []
-        with open('../inputs/day_2.txt', 'r') as f:
-            for line in f.readlines():
-                if line != '\n':
-                    coded_plays = line.split()[:2]
-                    strategy.append(Round(
-                        opponent_play=OPPONENT_PLAY_CODE[coded_plays[0]],
-                        my_play=MY_PLAY_CODE_PART_1[coded_plays[1]]
-                        ))
-        return strategy
+    @staticmethod
+    def _decode_round(coded_round: Tuple[str, str]) -> Round:
+        return Round(
+            opponent_play=OPPONENT_PLAY_CODE[coded_round[0]],
+            my_play=MY_PLAY_CODE_PART_1[coded_round[1]]
+        )
 
 
 class Part2Game(Game):
-    def _load_rounds(self) -> List[Round]:
-        strategy = []
-        with open('../inputs/day_2.txt', 'r') as f:
-            for line in f.readlines():
-                if line != '\n':
-                    coded_plays = line.split()[:2]
-
-                    opponent_play = OPPONENT_PLAY_CODE[coded_plays[0]]
-                    desired_outcome = MY_PLAY_CODE_PART_2[coded_plays[1]]
-                    my_play = Tool((opponent_play.value - desired_outcome.value) % 3)
-
-                    strategy.append(Round(
-                        opponent_play=opponent_play,
-                        my_play=my_play
-                        ))
-        return strategy
+    @staticmethod
+    def _decode_round(coded_round: Tuple[str, str]) -> Round:
+        opponent_play=OPPONENT_PLAY_CODE[coded_round[0]]
+        desired_outcome=MY_PLAY_CODE_PART_2[coded_round[1]]
+        my_play = Tool((opponent_play.value - desired_outcome.value) % 3)
+        return Round(
+            opponent_play=opponent_play,
+            my_play=my_play
+        )
 
 
 def main() -> None:
