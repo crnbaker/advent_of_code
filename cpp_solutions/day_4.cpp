@@ -56,16 +56,13 @@ int main()
             line.substr(0, line.find(delimiter))
             );
         std::set<int> secondAssignment = decodeAssignment(
-            line.substr(line.find(delimiter) + 1, line.length())
-            );
+            line.substr(line.find(delimiter) + 1, line.length()));
 
-        if (doesOneContainOther(firstAssignment, secondAssignment)
-            ) {
+        if (doesOneContainOther(firstAssignment, secondAssignment)) {
             fully_contained_counter++;
         }
 
-        if (doOverlap(firstAssignment, secondAssignment)
-            ) {
+        if (doOverlap(firstAssignment, secondAssignment)) {
             overlap_counter++;
         }
     }
