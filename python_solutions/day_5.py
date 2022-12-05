@@ -74,7 +74,7 @@ def decode_stacks() -> Tuple[List[str], ...]:
 				if crate.isalpha():
 					stack.append(crate)
 
-		return stacks
+		return [stack[::-1] for stack in stacks]
 
 
 def get_crane_commands() -> List[CraneCommand]:
