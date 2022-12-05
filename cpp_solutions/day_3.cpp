@@ -3,7 +3,6 @@
 #include <iostream>
 #include <fstream>
 #include <stdexcept>
-#include <functional>
 
 int getItemPriority(char item)
 {
@@ -79,9 +78,9 @@ std::vector<ElfGroup> groupElves()
         std::getline(file, lines[1]);
         if (std::getline(file, lines[2])) {
             Elf elves[3] = {
-                {std::ref(lines[0])},
-                {std::ref(lines[1])},
-                {std::ref(lines[2])}
+                {lines[0]},
+                {lines[1]},
+                {lines[2]}
             };
             ElfGroup elfGroup(elves);
             elfGroups.push_back(elfGroup);
