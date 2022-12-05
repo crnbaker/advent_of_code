@@ -1,5 +1,8 @@
 from itertools import islice
+from pathlib import Path
 from typing import List, Tuple
+
+INPUT_FILE = Path("../inputs/day_3.txt")
 
 
 def get_item_priority(item: str) -> int:
@@ -45,7 +48,7 @@ class ElfGroup:
 
 
 def group_elves() -> List[ElfGroup]:
-    with open("../inputs/day_3.txt", "r") as f:
+    with open(INPUT_FILE, "r") as f:
         elf_groups = []
         next_3_lines = list(islice(f, 3))
         while next_3_lines:

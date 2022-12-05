@@ -1,8 +1,12 @@
+from pathlib import Path
 from typing import List
 
 
+INPUT_FILE = Path("../inputs/day_1.txt")
+
+
 def load_calorie_file() -> str:
-    with open("../inputs/day_1.txt", "r") as f:
+    with open(INPUT_FILE, "r") as f:
         return f.read()
 
 

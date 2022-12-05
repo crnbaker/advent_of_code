@@ -1,7 +1,10 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+from pathlib import Path
 import re
 from typing import List, Tuple
+
+INPUT_FILE = Path("../inputs/day_5.txt")
 
 NUM_STACKS = 9
 INITIAL_MAX_HEIGHT = 8
@@ -82,7 +85,7 @@ def decode_stacks() -> Tuple[List[str], ...]:
 
     stacks: Tuple[List[str], ...] = tuple([[] for _ in range(NUM_STACKS)])
 
-    with open("../inputs/day_5.txt", "r") as f:
+    with open(INPUT_FILE, "r") as f:
         for line in f.readlines()[:INITIAL_MAX_HEIGHT]:
             for n, stack in enumerate(stacks):
                 crate = line[n * CHARS_PER_CRATE + 1]
@@ -94,7 +97,7 @@ def decode_stacks() -> Tuple[List[str], ...]:
 
 def get_crane_commands() -> List[CraneCommand]:
     command_list = []
-    with open("../inputs/day_5.txt", "r") as f:
+    with open(INPUT_FILE, "r") as f:
         for line in f.readlines()[PROCEDURE_START_LINE:]:
             command_list.append(parse_crane_command(line))
     return command_list

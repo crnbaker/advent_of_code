@@ -1,7 +1,10 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import Enum
+from pathlib import Path
 from typing import List, Tuple
+
+INPUT_FILE = Path("../inputs/day_2.txt")
 
 
 class Tool(Enum):
@@ -47,7 +50,7 @@ class Game(ABC):
 
     def _load_rounds(self) -> List[Round]:
         rounds = []
-        with open("../inputs/day_2.txt", "r") as f:
+        with open(INPUT_FILE, "r") as f:
             for line in f.readlines():
                 if line != "\n":
                     coded_round = (line.split()[0], line.split()[1])

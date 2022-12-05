@@ -1,4 +1,7 @@
+from pathlib import Path
 from typing import Set
+
+INPUT_FILE = Path("../inputs/day_4.txt")
 
 
 def decode_elf_assignment(coded_set: str) -> Set[int]:
@@ -18,7 +21,7 @@ def do_assignments_overlap(zone1: Set[int], zone2: Set[int]) -> bool:
 def main() -> None:
     fully_contained_counter = 0
     overlap_counter = 0
-    with open("../inputs/day_4.txt", "r") as f:
+    with open(INPUT_FILE, "r") as f:
         for line in f.readlines():
 
             elf_codes = line.split(",")[:2]
