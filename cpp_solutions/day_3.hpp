@@ -6,6 +6,7 @@ int getItemPriority(char item);
 class Elf
 {
 public:
+	Elf() : firstCompartment(""), secondCompartment("") {};
 	Elf(std::string codedItems) :
 		firstCompartment(decodeFirstCompartment(codedItems)),
 		secondCompartment(decodeSecondCompartment(codedItems))
@@ -24,10 +25,14 @@ private:
 class ElfGroup
 {
 public:
-	ElfGroup(Elf* elves) : elves(elves) {};
+	ElfGroup(Elf elves[3]) {
+		for (int i = 0; i < 3; i++) {
+    		this->elves[i] = elves[i];
+    }
+	};
 	~ElfGroup() {};
-	char findCommonItem() {};
-	Elf* elves;
+	char findCommonItem();
+	Elf elves[3];
 };
 
 std::vector<ElfGroup> groupElves();
