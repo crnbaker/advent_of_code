@@ -6,25 +6,33 @@ def decode_elf_set(coded_set: str) -> Set[int]:
     return set(range(start_stop[0], start_stop[1] + 1))
 
 
-if __name__ == "__main__":
+def does_one_assignment_contain_other(zone1: Set[int], zone2: Set[int]) -> bool:
+    max_zone_length = max([len(zone1), len(zone2)])
+    return len(zone1 | zone2) == max_zone_length
 
+
+def do_assignments_overlap(zone1: Set[int], zone2: Set[int]) -> bool:
+    return len(zone1 & zone2) > 0
+
+
+def main() -> None:
     fully_contained_counter = 0
     overlap_counter = 0
-
     with open("../inputs/day_4.txt", "r") as f:
         for line in f.readlines():
             elf_codes = line.split(",")[:2]
-
             first_elf_zones = decode_elf_set(elf_codes[0])
             second_elf_zones = decode_elf_set(elf_codes[1])
 
-            max_zone_length = max([len(first_elf_zones), len(second_elf_zones)])
-
-            if len(first_elf_zones | second_elf_zones) == max_zone_length:
+            if does_one_assignment_contain_other(first_elf_zones, second_elf_zones):
                 fully_contained_counter += 1
 
-            if len(first_elf_zones & second_elf_zones):
+            if do_assignments_overlap(first_elf_zones, second_elf_zones):
                 overlap_counter += 1
 
     print(f"There are {fully_contained_counter} fully contained section assignments.")
     print(f"There are {overlap_counter} overlapping section assignments")
+
+
+if __name__ == "__main__":
+    main()
