@@ -9,6 +9,9 @@ INPUT_FILE_PATH = Path("../inputs/day_7.txt")
 CHANGE_DIR_COMMAND = "$ cd"
 LIST_CONTENTS_COMMAND = "$ ls"
 
+DISK_SIZE = 70000000
+REQUIRED_SPACE = 30000000
+
 
 class FileSystemObject(ABC):
     def __init__(self, name: str, parent: Optional["Directory"] = None) -> None:
@@ -188,3 +191,14 @@ if __name__ == "__main__":
     dir_sizes = [dir.size for dir in dirs]
     small_dirs = [s for s in dir_sizes if s <= 100000]
     print(f"Total size of directories with size <= 100000 is {sum(small_dirs)}")
+
+    current_free_disk_space = DISK_SIZE - top_dir.size
+    extra_space_required = REQUIRED_SPACE - current_free_disk_space
+
+    sorted_dir_sizes = sorted(dir_sizes)
+    for dir_size in sorted_dir_sizes:
+        if dir_size >= extra_space_required:
+            break
+
+    print(f"We need {extra_space_required} of extra space.")
+    print(f"We can delete a directory that wil provide {dir_size} of extra space.")
