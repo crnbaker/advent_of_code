@@ -106,7 +106,7 @@ class DirectoryHasNoParentError(RuntimeError):
     pass
 
 
-class ScapingFailedError(RuntimeError):
+class ScrapingFailedError(RuntimeError):
     pass
 
 
@@ -146,7 +146,7 @@ class FileSystemScraper:
         if self._top_dir is not None:
             return self._top_dir
         else:
-            raise ScapingFailedError()
+            raise ScrapingFailedError()
 
     def _handle_file_system_object(self, line: str):
         if self._current_dir is not None:
