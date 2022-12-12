@@ -1,10 +1,11 @@
 from dataclasses import dataclass
 from enum import Enum
 from math import atan2, cos, degrees, floor, radians, sin
-from typing import List, Optional, Set, Tuple
+from typing import List, Set, Tuple
+
 
 INPUT_FILE_PATH = "../inputs/day_9.txt"
-ROPE_LENGTH = 10
+ROPE_LENGTH = 1
 
 
 class Direction(Enum):
@@ -54,6 +55,10 @@ class Position:
     hor: int
     ver: int
 
+    def unit_move(self, direction: Direction):
+        self.hor += round(sin(radians(direction.value)))
+        self.ver += round(cos(radians(direction.value)))
+
     def __sub__(self, other: "Position") -> Displacement:
         return Displacement(hor=self.hor - other.hor, ver=self.ver - other.ver)
 
@@ -61,78 +66,38 @@ class Position:
         return f"({self.hor}, {self.ver})"
 
 
-class Knot:
-    def __init__(
-        self,
-        initial_position: Position,
-        follows: Optional["Knot"] = None,
-        leads: Optional["Knot"] = None,
-    ) -> None:
-        self.position = initial_position
-        self._follows = follows
-        self._leads = leads
-        self._position_log: Set[Tuple[int, int]] = set()
-
-    @property
-    def follows(self) -> Optional["Knot"]:
-        return self._follows
-
-    @follows.setter
-    def follows(self, knot: "Knot") -> None:
-        self._follows = knot
-
-    @property
-    def leads(self) -> Optional["Knot"]:
-        return self._leads
-
-    @leads.setter
-    def leads(self, knot: "Knot") -> None:
-        self._leads = knot
-
-    @property
-    def num_positions_visited(self) -> int:
-        return len(self._position_log)
-
-    def unit_move(self, direction: Direction):
-        self.position.hor += round(sin(radians(direction.value)))
-        self.position.ver += round(cos(radians(direction.value)))
-        self._position_log.add((self.position.hor, self.position.ver))
-        if self._leads:
-            self._leads.follow()
-
-    def follow(self) -> None:
-        if self._follows:
-            displacement = self._follows.position - self.position
-            if round(displacement.distance) > 1:
-                if (displacement.angle % 90) == 0:
-                    self.unit_move(Direction(displacement.angle))
-                else:
-                    self.unit_move(
-                        Direction(round_angle_to_nearest_diagonal(displacement.angle))
-                    )
-            self._position_log.add((self.position.hor, self.position.ver))
-
-
 class Rope:
     def __init__(self, length: int = ROPE_LENGTH) -> None:
         self._length = length
-        self._knots: List[Knot] = [
-            Knot(initial_position=Position(0, 0)) for _ in range(length)
-        ]
-        self._knots[0].leads
-        for n, knot in enumerate(self._knots):
-            if n > 0:
-                knot.follows = self._knots[n - 1]
-            if n < (length - 1):
-                knot.leads = self._knots[n + 1]
+        self._head = Position(0, 0)
+        self._tail = Position(0, 0)
+        self._head_log: Set[Tuple[int, int]] = set()
+        self._tail_log: Set[Tuple[int, int]] = set()
 
     def move(self, command: Command) -> None:
         for _ in range(command.distance):
-            self._knots[0].unit_move(command.direction)
+            self._head.unit_move(command.direction)
+            self._update_tail()
+            self._head_log.add((self._head.hor, self._head.ver))
+
+    def _update_tail(self) -> None:
+        displacement = self._head - self._tail
+        if round(displacement.distance) > self._length:
+            if (displacement.angle % 90) == 0:
+                self._tail.unit_move(Direction(displacement.angle))
+            else:
+                self._tail.unit_move(
+                    Direction(round_angle_to_nearest_diagonal(displacement.angle))
+                )
+
+        self._tail_log.add((self._tail.hor, self._tail.ver))
 
     @property
     def num_positions_tail_visited(self) -> int:
-        return self._knots[-1].num_positions_visited
+        return len(self._tail_log)
+
+    def __str__(self) -> str:
+        return f"Head: {self._head}, Tail: {self._tail}."
 
 
 def round_angle_to_nearest_diagonal(angle: float) -> int:

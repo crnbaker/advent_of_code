@@ -148,7 +148,7 @@ class FileSystemScraper:
         else:
             raise ScrapingFailedError()
 
-    def _handle_file_system_object(self, line: str):
+    def _handle_file_system_object(self, line: str) -> None:
         if self._current_dir is not None:
             self._current_dir.add_item(
                 file_system_object_factory(line, self._current_dir)
