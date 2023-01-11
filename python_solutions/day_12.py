@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 import sys
-from typing import cast, Dict, List, Tuple
+from typing import Optional, cast, Dict, List, Tuple
 from matplotlib.pyplot import subplots
 from numpy import (
     argwhere,
@@ -9,11 +9,11 @@ from numpy import (
     int_,
     ndarray,
     ravel_multi_index,
-    squeeze,
     unravel_index,
     zeros,
 )
 from numpy.typing import NDArray
+from tqdm import tqdm
 
 
 @dataclass(frozen=True)
@@ -60,15 +60,12 @@ class Graph:
 
     def get_node_neighbours(self, node: GridPoint) -> List[GridPoint]:
         node_row = self._adjacency_matrix[node.ravelled_index, :]
-        neighbours_ravelled_indices = squeeze(argwhere(node_row == 1))
+        neighbours_ravelled_indices = argwhere(node_row == 1)[:, 0]
         neighbours: List[GridPoint] = []
-        try:
-            for ravelled_index in neighbours_ravelled_indices:
-                neighbours.append(
-                    GridPoint.from_ravelled_index(self._grid_size, ravelled_index)
-                )
-        except TypeError:
-            pass
+        for ravelled_index in neighbours_ravelled_indices:
+            neighbours.append(
+                GridPoint.from_ravelled_index(self._grid_size, ravelled_index)
+            )
         return neighbours
 
     def plot(self) -> None:
@@ -87,6 +84,9 @@ class Graph:
                 )
         ax.invert_yaxis()
         ax.axis("equal")
+
+    def transpose(self) -> None:
+        self._adjacency_matrix = self._adjacency_matrix.T
 
 
 class AltitudeMap:
@@ -118,6 +118,17 @@ class AltitudeMap:
         )
 
     @property
+    def minima(self) -> List[GridPoint]:
+        zero_alt_points = argwhere(self._map == 0)
+
+        zero_alt = [
+            GridPoint(grid_size=self.grid_dimensions, row=p[0], col=p[1])
+            for p in zero_alt_points
+        ] + [self.start]
+
+        return zero_alt
+
+    @property
     def grid_dimensions(self) -> Tuple[int, int]:
         return cast(Tuple[int, int], self._map.shape)
 
@@ -138,9 +149,10 @@ class AltitudeMap:
         return grad_y
 
 
-def dijkstra_algorithm(graph: Graph, start: GridPoint, end: GridPoint) -> int:
+def dijkstra_algorithm(
+    graph: Graph, start: GridPoint, end: Optional[GridPoint] = None
+) -> Dict[int, int]:
     unvisited_nodes = graph.nodes
-    num_nodes = len(unvisited_nodes)
     shortest_paths: Dict[int, int] = {}
     previous_nodes: Dict[int, int] = {}
 
@@ -149,41 +161,47 @@ def dijkstra_algorithm(graph: Graph, start: GridPoint, end: GridPoint) -> int:
         shortest_paths[node.ravelled_index] = max_value
     shortest_paths[start.ravelled_index] = 0
 
-    prev_complete = 0.0
-    while unvisited_nodes:
-        percent_complete = round(100 * (num_nodes - len(unvisited_nodes)) / num_nodes)
-        if percent_complete > prev_complete:
-            print(f"{percent_complete} %")
-            prev_complete = percent_complete
-        current_min_node = None
-        for node in unvisited_nodes:
-            if current_min_node is None:
-                current_min_node = node
-            elif (
-                shortest_paths[node.ravelled_index]
-                < shortest_paths[current_min_node.ravelled_index]
-            ):
-                current_min_node = node
-
-        # The code block below retrieves the current node's neighbors and updates their distances
-        if current_min_node is not None:
-            neighbors = graph.get_node_neighbours(current_min_node)
-            for neighbor in neighbors:
-                tentative_value = shortest_paths[current_min_node.ravelled_index] + 1
-                if tentative_value < shortest_paths[neighbor.ravelled_index]:
-                    shortest_paths[neighbor.ravelled_index] = tentative_value
-                    # We also update the best path to the current node
-                    previous_nodes[
-                        neighbor.ravelled_index
-                    ] = current_min_node.ravelled_index
-
-            # After visiting its neighbors, we mark the node as "visited"
-            unvisited_nodes.remove(current_min_node)
+    def should_continue(_unvisited_nodes: List[GridPoint]) -> bool:
+        if end is not None:
+            return end in _unvisited_nodes
         else:
-            raise RuntimeError("Pathfinding failed")
+            return len(_unvisited_nodes) > 0
 
-    # Return the length of the shortest path from start to end
-    return shortest_paths[end.ravelled_index]
+    with tqdm(total=len(unvisited_nodes)) as pbar:
+        while should_continue(unvisited_nodes):
+            num_nodes_left_to_visit = len(unvisited_nodes)
+            current_min_node = None
+            for node in unvisited_nodes:
+                if current_min_node is None:
+                    current_min_node = node
+                elif (
+                    shortest_paths[node.ravelled_index]
+                    < shortest_paths[current_min_node.ravelled_index]
+                ):
+                    current_min_node = node
+
+            # The code block below retrieves the current node's neighbors and updates their distances
+            if current_min_node is not None:
+                neighbors = graph.get_node_neighbours(current_min_node)
+                for neighbor in neighbors:
+                    tentative_value = (
+                        shortest_paths[current_min_node.ravelled_index] + 1
+                    )
+                    if tentative_value < shortest_paths[neighbor.ravelled_index]:
+                        shortest_paths[neighbor.ravelled_index] = tentative_value
+                        # We also update the best path to the current node
+                        previous_nodes[
+                            neighbor.ravelled_index
+                        ] = current_min_node.ravelled_index
+
+                # After visiting its neighbors, we mark the node as "visited"
+                unvisited_nodes.remove(current_min_node)
+            else:
+                raise RuntimeError("Pathfinding failed")
+            pbar.update(num_nodes_left_to_visit - len(unvisited_nodes))
+
+    # Return the length of the shortest paths from start to each node
+    return shortest_paths
 
 
 def graph_factory(altitude_map: AltitudeMap) -> Graph:
@@ -220,8 +238,17 @@ def main():
     graph = graph_factory(map)
     graph.plot()
 
-    shortest_path = dijkstra_algorithm(graph, map.start, map.stop)
-    print(shortest_path)
+    shortest_path = dijkstra_algorithm(graph, map.start, map.stop)[
+        map.stop.ravelled_index
+    ]
+    print(f"Shortest path from S to E has {shortest_path} steps")
+
+    graph.transpose()
+    shortest_paths = dijkstra_algorithm(graph, map.stop)
+    paths_to_minima = [shortest_paths[p.ravelled_index] for p in map.minima]
+    print(
+        f"Shortest path from any zero-altitude point to end is {min(paths_to_minima)}"
+    )
 
 
 if __name__ == "__main__":
